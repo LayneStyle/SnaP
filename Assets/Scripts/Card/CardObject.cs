@@ -1,10 +1,11 @@
-using System;using Unity.Netcode;
+using System;
+using Unity.Netcode;
 
 /// <summary>
 /// Source https://github.com/ccqi/TexasHoldem
 /// </summary>
 [Serializable]
-public class CardObject : INetworkSerializable
+public class CardObject : INetworkSerializable, IEquatable<CardObject> // <-- AÑADE IEquatable AQUÍ
 {
     public Suit Suit => _suit;
     private Suit _suit;
@@ -30,6 +31,13 @@ public class CardObject : INetworkSerializable
         return (int)Value;
     }
 
+    // AÑADE ESTE MÉTODO PÚBLICO
+    public bool Equals(CardObject other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return Suit == other.Suit && Value == other.Value;
+    }
 
     #region Overrides
 
@@ -66,11 +74,6 @@ public class CardObject : INetworkSerializable
     public static bool operator >=(CardObject a, CardObject b)
     {
         return a.Value >= b.Value;
-    }
-
-    protected bool Equals(CardObject other)
-    {
-        return Suit == other.Suit && Value == other.Value;
     }
 
     public override bool Equals(object obj)
