@@ -5,9 +5,9 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
+using UnityEngine.SceneManagement;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
-using UnityEngine.SceneManagement;
 
 public class UnityRelayNetworkConnector : INetworkConnector
 {
@@ -109,7 +109,6 @@ public class UnityRelayNetworkConnector : INetworkConnector
         await UnityServices.InitializeAsync();
         if (!AuthenticationService.Instance.IsSignedIn)
         {
-            //If not already logged, log the user in
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
         }
     }

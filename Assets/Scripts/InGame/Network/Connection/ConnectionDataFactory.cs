@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Services.Relay;
+using Unity.Services.Relay.Models;
 
 public static class ConnectionDataFactory
 {
