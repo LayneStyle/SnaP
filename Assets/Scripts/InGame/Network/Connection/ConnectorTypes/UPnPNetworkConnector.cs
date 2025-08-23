@@ -76,35 +76,10 @@ public class UPnPNetworkConnector : INetworkConnector
 
     public async Task<bool> TryJoinGame()
     {
-        if (NetworkManager.Singleton.IsListening == true)
-        {
-            Logger.Log("Can`t join game: NetworkManager is already listening.", Logger.LogLevel.Error);
-            return false;
-        }
-        
-        UnityTransport unityTransport = (UnityTransport)NetworkManager.Singleton.NetworkConfig.NetworkTransport;
-        
-        LobbyDto selectedLobbyDto = LobbyListCell.SelectedLobbyDto;
-
-        IPAddress selfPublicIP = await ConnectionDataPresenter.GetOrUpdatePublicIpAddressAsync();
-        if (selfPublicIP.ToString() == selectedLobbyDto.PublicIpAddress)
-        {
-            Logger.Log("Seems like you and your host using same network. Redirecting to local IP...", Logger.LogLevel.Warning);
-            selectedLobbyDto.PublicIpAddress = (await ConnectionDataPresenter.GetLocalIpAddressAsync()).ToString();
-        }
-        
-        unityTransport.SetConnectionData(selectedLobbyDto.PublicIpAddress, selectedLobbyDto.Port);
-        
-        try
-        {
-            NetworkManager.Singleton.StartClient();
-        }
-        catch (Exception e)
-        {
-            Logger.Log($"Can`t StartHost(). {e}", Logger.LogLevel.Error);
-            return false;
-        }
-
-        return true;
+        // Esta lógica ha sido movida al ClientLobbyManager para usar UGS
+        // Esta implementación de TryJoinGame es ahora obsoleta para el flujo de UGS
+        // pero la mantenemos para evitar errores en otras partes del código que puedan llamarla.
+        Logger.Log("TryJoinGame in UPnPNetworkConnector is obsolete. Use ClientLobbyManager to join via Lobby.", Logger.LogLevel.Warning);
+        return false;
     }
 }

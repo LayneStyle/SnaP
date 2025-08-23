@@ -35,8 +35,6 @@ public class ServerListScrollViewWindow : ViewWindow
 
     protected override void HideInternal()
     {
-        _lobbyList.CancelLoading();
-        
         _lobbyList.StartLoadingEvent -= OnStartLoadingLobbyList;
         _lobbyList.EndLoadingEvent -= OnEndLoadingLobbyList;
     }

@@ -1,14 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using PolyAndCode.UI;
-using LobbyService;
-using LobbyService.Interfaces;
-using LobbyService.TcpIp;
+using Unity.Services.Lobbies.Models;
 using UnityEngine;
-using Zenject;
 
 public class LobbyListDataSource : MonoBehaviour, IRecyclableScrollRectDataSource
 {
@@ -18,18 +12,8 @@ public class LobbyListDataSource : MonoBehaviour, IRecyclableScrollRectDataSourc
     [SerializeField] private RecyclableScrollRect _recyclableScrollRect;
     [SerializeField] private KeyCode _updateRectKeyCode;
     
-    private List<LobbyDto> _lobbyInfos = new();
+    private List<Lobby> _lobbies = new();
 
-    private IClientsLobbyService _clientsLobbyService;
-    
-    private CancellationTokenSource _loadCancellationToken;
-
-    [Inject]
-    private void Construct(IClientsLobbyService clientsLobbyService)
-    {
-        _clientsLobbyService = clientsLobbyService;
-    }
-    
     private void Awake()
     {
 #if !UNITY_STANDALONE
@@ -38,6 +22,22 @@ public class LobbyListDataSource : MonoBehaviour, IRecyclableScrollRectDataSourc
 #endif
         
         _recyclableScrollRect.DataSource = this;
+    }
+
+    private void OnEnable()
+    {
+        if (ClientLobbyManager.Instance != null)
+        {
+            ClientLobbyManager.Instance.OnLobbyListUpdated += OnLobbyListUpdated;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (ClientLobbyManager.Instance != null)
+        {
+            ClientLobbyManager.Instance.OnLobbyListUpdated -= OnLobbyListUpdated;
+        }
     }
 
     private void Update()
@@ -52,69 +52,29 @@ public class LobbyListDataSource : MonoBehaviour, IRecyclableScrollRectDataSourc
 
     public int GetItemCount()
     {
-        return _lobbyInfos.Count;
+        return _lobbies.Count;
     }
 
     public void SetCell(ICell cell, int index)
     {
-        LobbyListCell lobbyListCell = cell as LobbyListCell;
-
-        if (lobbyListCell == null)
+        if (cell is LobbyListCell lobbyListCell)
         {
-            Logger.Log("Can`t cast cell to LobbyListCell. WHY?!", Logger.LogLevel.Error);
-            return;
+            lobbyListCell.SetLobbyInfo(_lobbies[index]);
         }
-        
-        lobbyListCell.SetLobbyInfo(_lobbyInfos[index], index);
     }
 
-    public void CancelLoading()
-    {
-        _loadCancellationToken?.Cancel();
-    }
-    
     // Button.
-    public async void UpdateScrollRect()
-    {
-        if (await TryUpdateLobbiesInfo() == false)
-        {
-            return;
-        }
-
-        _lobbyInfos = _lobbyInfos.Where(lobbyInfo => lobbyInfo != null).ToList();
-        
-        _recyclableScrollRect.ReloadData();
-        
-        Logger.Log("Scroll rect updated.");
-    }
-    
-    private async Task<bool> TryUpdateLobbiesInfo()
+    public void UpdateScrollRect()
     {
         StartLoadingEvent?.Invoke();
-        
-        _loadCancellationToken = new CancellationTokenSource();
-        List<LobbyDto> lobbyInfos;
-        try
-        {
-            lobbyInfos = await _clientsLobbyService.GetLobbiesInfoAsync(_loadCancellationToken.Token);
-        }
-        catch (TaskCanceledException)
-        {
-            Logger.Log("Loading canceled.");
-            EndLoadingEvent?.Invoke();
-            return false;
-        }
-        
-        if (lobbyInfos == null)
-        {
-            _lobbyInfos = new List<LobbyDto>();
-            EndLoadingEvent?.Invoke();
-            return false;
-        }
-        
+        ClientLobbyManager.Instance.QueryLobbies();
+    }
+    
+    private void OnLobbyListUpdated(List<Lobby> lobbies)
+    {
+        _lobbies = lobbies;
+        _recyclableScrollRect.ReloadData();
         EndLoadingEvent?.Invoke();
-
-        _lobbyInfos = lobbyInfos;
-        return true;
+        Logger.Log("Scroll rect updated.");
     }
 }
