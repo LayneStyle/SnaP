@@ -1,3 +1,4 @@
+
 using PolyAndCode.UI;
 using TMPro;
 using UnityEngine;
@@ -48,6 +49,7 @@ public class LobbyListCell : MonoBehaviour, ICell
         _isJoining = true;
         _joinButton.interactable = false;
         SelectedLobby = _lobby;
-        ClientLobbyManager.Instance.JoinLobby(_lobby);
+        // Using a placeholder for the display name
+        ClientLobbyManager.Instance.JoinLobby(_lobby, "Player");
     }
 }

@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -21,6 +20,9 @@ public class DedicatedServerLobbyManager : MonoBehaviour
     {
         try
         {
+            Application.targetFrameRate = 60;
+            QualitySettings.vSyncCount = 0;
+
             await UnityServices.InitializeAsync();
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
             Debug.Log("Dedicated Server Signed In.");

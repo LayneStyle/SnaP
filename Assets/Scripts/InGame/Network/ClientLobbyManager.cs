@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -5,7 +6,7 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
-using Unity.Services.Lobbies; // <--- DIRECTIVA ESENCIAL AÑADIDA
+using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
 using UnityEngine;
@@ -65,7 +66,6 @@ public class ClientLobbyManager : MonoBehaviour
                 }
             };
 
-            // CORRECCIÓN: Se especifica que es el LobbyService de UGS
             QueryResponse response = await global::Unity.Services.Lobbies.LobbyService.Instance.QueryLobbiesAsync(options);
             OnLobbyListUpdated?.Invoke(response.Results);
         }
@@ -75,12 +75,27 @@ public class ClientLobbyManager : MonoBehaviour
         }
     }
 
-    public async void JoinLobby(Lobby lobby)
+    public async void JoinLobby(Lobby lobby, string displayName)
     {
         OnJoining?.Invoke();
         try
         {
-            var joinAllocation = await RelayService.Instance.JoinAllocationAsync(lobby.Data["joinCode"].Value);
+            var joinOptions = new JoinLobbyByIdOptions
+            {
+                Player = new global::Unity.Services.Lobbies.Models.Player(
+                    id: AuthenticationService.Instance.PlayerId,
+                    data: new Dictionary<string, PlayerDataObject>
+                    {
+                        { "DisplayName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, displayName) }
+                    }
+                )
+            };
+
+            var joinedLobby = await global::Unity.Services.Lobbies.LobbyService.Instance.JoinLobbyByIdAsync(lobby.Id, joinOptions);
+
+            var joinCode = joinedLobby.Data["joinCode"].Value;
+
+            var joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
 
             var unityTransport = NetworkManager.Singleton.GetComponent<UnityTransport>();
             unityTransport.SetClientRelayData(
