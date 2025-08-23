@@ -18,9 +18,23 @@ public static class ConnectionDataPresenter
     
     public static async Task<IPAddress> GetLocalIpAddressAsync()
     {
-        return (await Dns.GetHostEntryAsync(Dns.GetHostName()))
-            .AddressList.First(
-                f => f.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+        foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
+        {
+            if (ni.OperationalStatus == OperationalStatus.Up &&
+                (ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ||
+                 ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet))
+            {
+                foreach (UnicastIPAddressInformation ip in ni.GetIPProperties().UnicastAddresses)
+                {
+                    if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
+                        !IPAddress.IsLoopback(ip.Address))
+                    {
+                        return ip.Address;
+                    }
+                }
+            }
+        }
+        return null; // Or throw an exception if no suitable IP is found
     }
 
     public static ushort GetGamePort()

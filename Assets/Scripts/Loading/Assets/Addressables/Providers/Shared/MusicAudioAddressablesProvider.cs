@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+#if !UNITY_SERVER
+using UnityEngine;
 
 [RequireComponent(typeof(MusicAudioPlayer))]
 public class MusicAudioAddressablesProvider : MonoBehaviour, IAddressablesProvider
@@ -11,3 +12,4 @@ public class MusicAudioAddressablesProvider : MonoBehaviour, IAddressablesProvid
         _musicAudioPlayer.SetClips(loader.Clips);
     }
 }
+#endif
